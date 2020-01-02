@@ -1,0 +1,33 @@
+import shutil
+import csv
+import os
+
+from funcoes import *
+
+pibicNaoBaixado = []
+item = 1000
+with open('metadados.csv', newline='', encoding='utf8') as f:
+    r = csv.reader(f)
+    next(r)
+    for i in r:
+        #criar pasta do item
+        os.mkdir('pibic/'+str(item))
+        #copiar licensa
+        shutil.copy('license_rdf', os.path.join('pibic/'+str(item),'license_rdf'))
+        #copiar arquivo contents
+        shutil.copy('contents', os.path.join('pibic/'+str(item),'contents'))
+        #baixar pdf
+        pdf = baixar_pdf(i[7])
+        if pdf.status_code == requests.codes.ok:
+            print('pibic n.',item,'baixado com sucesso')
+        else:
+            print('problema ao baixar pibic n.',item)
+            pibicNaoBaixado.append(item)
+        #salvar pdf
+        with open('pibic/'+str(item)+'/pibic_inpa.pdf', 'wb') as a:
+            a.write(pdf.content)
+        #gerar dublin core
+        dc = gerador_xml(i)
+        dc.write('pibic/'+str(item)+'/dublin_core.xml', encoding='utf-8', xml_declaration=False)
+        
+        item += 1
